@@ -80,6 +80,14 @@ I could not establish why macOS rejected this package. The workaround was to sav
 
 ### 3.1 Save the package during the download
 
+**You need an administrator account for this step.**
+
+> **If your account is not an administrator**
+>
+> 1. In your usual account, run `getconf DARWIN_USER_CACHE_DIR` and write down the result.
+> 2. Log in to an administrator account with `login <admin>`.
+> 3. In the script below, change the first line to `CACHE_ROOT="<the result from step 1>"`.
+
 The App Store stores temporary installer packages in its cache. It normally deletes these files after installation.
 
 You must copy the package while the download is in progress.
@@ -174,31 +182,26 @@ The expected results are:
 
 These checks confirm the package signature and its Gatekeeper assessment. They do not guarantee that the installer will accept the package.
 
-### 3.4 Copy the package to /tmp
+### 3.4 Extract the application and copy it to /Applications
 
-An administrator account cannot read the Desktop of another user. If the package is on your Desktop, copy it to `/tmp` from your usual account:
-
-```bash
-cp ~/Desktop/FinalCut-Pro-10.6.10.pkg /tmp/
-```
-
-If the package is already in `/Users/Shared`, use:
-
-```bash
-cp /Users/Shared/FinalCut-Pro-10.6.10.pkg /tmp/
-```
-
-### 3.5 Log in as an administrator
-
-```bash
-login <admin>
-cd /tmp
-```
-
-### 3.6 Extract the application and copy it to /Applications
+> **If your account is not an administrator**
+>
+> `sudo` does not work in your account. Do these steps first:
+>
+> 1. Copy the package to `/tmp`:
+>    ```bash
+>    cp /Users/Shared/FinalCut-Pro-10.6.10.pkg /tmp/
+>    ```
+> 2. Log in to an administrator account:
+>    ```bash
+>    login <admin>
+>    ```
+> 3. In the commands below, change `/Users/Shared` to `/tmp`.
+>
+> Type `exit` after section 3.6 to go back to your usual account.
 
 ```bash
-pkgutil --expand-full /tmp/FinalCut-Pro-10.6.10.pkg /tmp/fcp
+pkgutil --expand-full /Users/Shared/FinalCut-Pro-10.6.10.pkg /tmp/fcp
 APP=$(find /tmp/fcp -maxdepth 5 -type d -name "Final Cut Pro.app" | head -1)
 echo "$APP"
 sudo ditto "$APP" "/Applications/Final Cut Pro.app"
@@ -214,7 +217,7 @@ If Final Cut Pro is already in `/Applications`, rename the existing application 
 
 If macOS asks for permission to let Terminal change applications, click Allow.
 
-### 3.7 Verify the application
+### 3.5 Verify the application
 
 Run:
 
@@ -225,16 +228,19 @@ defaults read "/Applications/Final Cut Pro.app/Contents/Info.plist" CFBundleShor
 
 The first command should report `OK`. The second should report `10.6.10`.
 
-### 3.8 Remove temporary files
+### 3.6 Remove temporary files
 
 After you have verified the application:
 
 ```bash
-sudo rm -rf /tmp/fcp /tmp/FinalCut-Pro-10.6.10.pkg
-exit
+sudo rm -rf /tmp/fcp
 ```
 
-Open Final Cut Pro from your usual account.
+If you copied the package to `/tmp`, also remove `/tmp/FinalCut-Pro-10.6.10.pkg`.
+
+This does not delete the package in `/Users/Shared`. Keep that copy for your archive.
+
+Open Final Cut Pro.
 
 If it asks for an Apple ID, sign in with the Apple ID that purchased the application. The app uses this to access its purchase receipt.
 
