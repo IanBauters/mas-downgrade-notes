@@ -1,24 +1,88 @@
-# Final Cut Pro: version IDs and installing an archived App Store package
+# Final Cut Pro: version IDs and archived App Store packages
 
-These are my notes for downgrading Final Cut Pro from the Mac App Store, and for installing an App Store `.pkg` that I keep in my own archive.
+These are my notes for downloading older versions of Final Cut Pro from the Mac App Store and keeping copies of the installers.
 
-The method for getting an older version comes from **[nghlt/Downgrade-MAS-Applications](https://github.com/nghlt/Downgrade-MAS-Applications)**. Read and follow that guide first. These notes add three things:
+The method for downloading older versions comes from **[nghlt/Downgrade-MAS-Applications](https://github.com/nghlt/Downgrade-MAS-Applications)**. Read and follow that guide first.
 
-1. A procedure to capture and save the App Store `.pkg` before it is automatically deleted.
-2. A list of `appExtVrsId` values for Final Cut Pro.
-3. A procedure to install a saved App Store `.pkg` later, without the App Store.
+These notes add two things:
 
-> You must own the app on your Apple ID. These notes do not help you get software that you did not buy.
+1. A list of `appExtVrsId` values for Final Cut Pro.
+2. A procedure to save and install an archived App Store package.
+
+> You must own Final Cut Pro on your Apple ID. These notes do not provide access to software that you have not purchased.
+
+**Important:** I used the normal App Store installation process for all tested versions except 10.6.10. Final Cut Pro 10.6.10 required a manual workaround. The additional steps in section 3 apply only to that version. Do not use them for other versions unless you have the same installation problem.
 
 ---
 
-## 1. Capture the App Store package
+## 1. Final Cut Pro version IDs (`appExtVrsId`)
 
-When downloading an application from the Mac App Store, the installer package is temporarily stored in the App Store agent's cache. After installation, macOS normally removes it.
+Use one of these values for `appExtVrsId` in step 4 of the original guide.
 
-To keep a copy, you need to capture it while the download is taking place.
+| appExtVrsId | Version | Status |
+|---|---|---|
+| 860357778 | 10.6.10 | Confirmed (manual installation) |
+| 868934312 | 11.0 | Confirmed |
+| 869630074 | 11.0 | Confirmed |
+| 870244110 | 11.0 | Confirmed |
+| 871732983 | 11.0.1 | Confirmed |
+| 872058532 | 11.0.1 | Confirmed |
+| 872452762 | 11.1 | Confirmed |
+| 873376670 | 11.1 | Confirmed |
+| 874753139 | 11.1.1 | Confirmed |
+| 877853662 | 11.2 | Confirmed |
+| 878609324 | 12.0 | Confirmed |
+| 881360665 | Unknown | Not verified |
+| 883683783 | Unknown | Not verified |
+| 883948682 | Unknown | Not verified |
+| 885048303 | Unknown | Not verified |
+| 885086868 | 12.3 | Confirmed |
+| 890018965 | 12.4 | Confirmed |
+| 891612528 | 12.4 | Confirmed |
+| 892719956 | 13.0 | Confirmed |
+| 893630008 | 13.0 | Confirmed |
 
-### 1.1 Start a package watcher
+Some versions have more than one ID. Apple sometimes releases the same version number more than once.
+
+To identify an ID that is not verified, download it with the original guide. Then run:
+
+```bash
+defaults read "/Applications/Final Cut Pro.app/Contents/Info.plist" CFBundleShortVersionString
+```
+
+Pull requests and comments with corrections are welcome.
+
+---
+
+## 2. Normal App Store installation
+
+For all tested versions except 10.6.10, I used the normal App Store installation process.
+
+Follow the original guide to request the version that you want. When the download is complete, let the App Store install Final Cut Pro.
+
+You do not need the manual installation procedure in section 3 if the App Store installation works.
+
+---
+
+## 3. Final Cut Pro 10.6.10: save and install the package manually
+
+**This procedure was only needed for Final Cut Pro 10.6.10.**
+
+The App Store downloaded the package, but macOS refused to install it. The package had a valid Apple signature. Gatekeeper also accepted it. However, the macOS installer service reported that the package did not meet Gatekeeper policy.
+
+The system log showed:
+
+```text
+Denying revoked package
+```
+
+I could not establish why macOS rejected this package. The workaround was to save the package before the App Store deleted it, then copy the application into `/Applications` manually.
+
+### 3.1 Save the package during the download
+
+The App Store stores temporary installer packages in its cache. It normally deletes these files after installation.
+
+You must copy the package while the download is in progress.
 
 Open Terminal and run:
 
@@ -73,27 +137,27 @@ done
 '
 ```
 
-The watcher searches the current user's App Store cache for a package named `npw*.pkg`. It copies the package to `/Users/Shared` and refreshes that copy as the download grows. Once the source size has remained unchanged for five consecutive checks, it considers the capture complete.
-
 Keep this Terminal window open.
 
-### 1.2 Download Final Cut Pro
+### 3.2 Download Final Cut Pro 10.6.10
 
-In another Terminal window, or in the App Store, follow the original downgrade guide to request the desired version.
+Use the original guide to request Final Cut Pro 10.6.10.
 
-Start the download using the `appExtVrsId` for the version you want.
+The `appExtVrsId` is:
 
-The watcher should detect the temporary `.pkg` automatically.
+```text
+860357778
+```
 
-When the download finishes and the package size stabilises, the watcher stops. You should now have:
+The script searches the App Store cache for the temporary package. It copies the package to:
 
 ```text
 /Users/Shared/FinalCut-Pro-10.6.10.pkg
 ```
 
-The filename is just a local archive name. It does not affect the package itself.
+When the download is complete, the script checks that the file size has stopped changing. It then stops.
 
-### 1.3 Verify the captured package
+### 3.3 Check the package
 
 Run:
 
@@ -102,90 +166,36 @@ pkgutil --check-signature "/Users/Shared/FinalCut-Pro-10.6.10.pkg"
 spctl --assess --type install -vvv "/Users/Shared/FinalCut-Pro-10.6.10.pkg"
 ```
 
-Check that the signature reports `signed by Apple for the App Store` and that Gatekeeper reports `accepted` with `source=Mac App Store`.
+The expected results are:
 
-Do not assume that a successful capture means the package will install successfully on every macOS version. Keep the original package untouched in your archive.
+- `signed by Apple for the App Store`
+- `accepted`
+- `source=Mac App Store`
 
----
+These checks confirm the package signature and its Gatekeeper assessment. They do not guarantee that the installer will accept the package.
 
-## 2. Final Cut Pro version IDs (`appExtVrsId`)
+### 3.4 Copy the package to /tmp
 
-Use one of these values for `appExtVrsId` in step 4 of the original guide.
-
-| appExtVrsId | Version | Status |
-|---|---|---|
-| 860357778 | 10.6.10 | Confirmed (installed and tested) |
-| 868934312 | 11.0 | Confirmed |
-| 869630074 | 11.0 | Confirmed |
-| 870244110 | 11.0 | Confirmed |
-| 871732983 | 11.0.1 | Confirmed |
-| 872058532 | 11.0.1 | Confirmed |
-| 872452762 | 11.1 | Confirmed |
-| 873376670 | 11.1 | Confirmed |
-| 874753139 | 11.1.1 | Confirmed |
-| 877853662 | 11.2 | Confirmed |
-| 878609324 | 12.0 | Confirmed |
-| 881360665 | Unknown | Not verified |
-| 883683783 | Unknown | Not verified |
-| 883948682 | Unknown | Not verified |
-| 885048303 | Unknown | Not verified |
-| 885086868 | 12.3 | Confirmed |
-| 890018965 | 12.4 | Confirmed |
-| 891612528 | 12.4 | Confirmed |
-| 892719956 | 13.0 | Confirmed |
-| 893630008 | 13.0 | Confirmed |
-
-Some versions have more than one ID. Apple sometimes publishes a build again with the same version number.
-
-To find the version of an ID that is not verified, download it with the original guide. Then type:
-
-```bash
-defaults read "/Applications/Final Cut Pro.app/Contents/Info.plist" CFBundleShortVersionString
-```
-
-Pull requests or comments with corrections are welcome.
-
----
-
-## 3. Install an archived App Store package
-
-If you keep the `.pkg` for later use, you may find that you cannot install it with a double-click or with `sudo installer -pkg`.
-
-In my case, both methods returned:
-
-> The package FinalCut-Pro-10.6.10.pkg fails to meet Gatekeeper policy.
-
-The package itself was not damaged. Its Apple signature was valid, and `spctl` accepted it. However, macOS's installer security service (`syspolicyd`) rejected it during its package revocation assessment.
-
-The workaround is to expand the package and copy the application into `/Applications` manually. This bypasses the failing installer operation, not Gatekeeper's application signature checks.
-
-### 3.1 Check the package
-
-```bash
-pkgutil --check-signature FinalCut-Pro-10.6.10.pkg
-spctl -a -vv -t install FinalCut-Pro-10.6.10.pkg
-```
-
-The package should report `signed by Apple for the App Store` and `accepted` with `source=Mac App Store`.
-
-### 3.2 Copy the package to /tmp
-
-An administrator account cannot read the Desktop of a different user. Do this step in your usual account:
+An administrator account cannot read the Desktop of another user. If the package is on your Desktop, copy it to `/tmp` from your usual account:
 
 ```bash
 cp ~/Desktop/FinalCut-Pro-10.6.10.pkg /tmp/
 ```
 
-Adjust the source path if your package is stored elsewhere.
+If the package is already in `/Users/Shared`, use:
 
-### 3.3 Log in as an administrator
+```bash
+cp /Users/Shared/FinalCut-Pro-10.6.10.pkg /tmp/
+```
+
+### 3.5 Log in as an administrator
 
 ```bash
 login <admin>
 cd /tmp
 ```
 
-### 3.4 Open the package and copy the app
+### 3.6 Extract the application and copy it to /Applications
 
 ```bash
 pkgutil --expand-full /tmp/FinalCut-Pro-10.6.10.pkg /tmp/fcp
@@ -194,31 +204,47 @@ echo "$APP"
 sudo ditto "$APP" "/Applications/Final Cut Pro.app"
 ```
 
-For Final Cut Pro, the app is at:
+The application is inside:
 
 ```text
 /tmp/fcp/FinalCut_AppStore.pkg/Payload/Applications/Final Cut Pro.app
 ```
 
-If there is already a Final Cut Pro in `/Applications`, rename it first. If macOS asks if Terminal can change apps (App Management), click Allow.
+If Final Cut Pro is already in `/Applications`, rename the existing application before you copy the new one.
 
-### 3.5 Check the app and remove the temporary files
+If macOS asks for permission to let Terminal change applications, click Allow.
+
+### 3.7 Verify the application
+
+Run:
 
 ```bash
 codesign --verify --deep --strict "/Applications/Final Cut Pro.app" && echo OK
+defaults read "/Applications/Final Cut Pro.app/Contents/Info.plist" CFBundleShortVersionString
+```
+
+The first command should report `OK`. The second should report `10.6.10`.
+
+### 3.8 Remove temporary files
+
+After you have verified the application:
+
+```bash
 sudo rm -rf /tmp/fcp /tmp/FinalCut-Pro-10.6.10.pkg
 exit
 ```
 
-### 3.6 Start the app
+Open Final Cut Pro from your usual account.
 
-Open Final Cut Pro from your usual account. If it asks for an Apple ID, sign in with the Apple ID that bought it. The app uses this to get its purchase receipt.
+If it asks for an Apple ID, sign in with the Apple ID that purchased the application. The app uses this to access its purchase receipt.
 
 ---
 
 ## 4. Notes
 
-- Turn SIP on again after you use the original guide.
-- Keep the minimum macOS version next to each archived package. An older Final Cut Pro does not always start on a newer macOS, and the reverse.
-- The manual extraction procedure in section 3 has been tested with Final Cut Pro 10.6.10. It should not be assumed to work with every App Store package.
-- Keep the original `.pkg` in your archive. Do not modify its contents or discard it after extracting the application.
+- Turn SIP on again after you use the original downgrade guide.
+- Keep the minimum macOS version with each archived package.
+- An older version of Final Cut Pro may not run on a newer version of macOS. A newer version may also require a newer version of macOS.
+- The manual workaround in section 3 was tested with Final Cut Pro 10.6.10. I have not tested it with every App Store package.
+- Keep an untouched copy of each archived `.pkg`.
+- The normal App Store installation process worked for the other tested Final Cut Pro versions. Section 3 documents an exception, not the standard installation method.
