@@ -20,7 +20,7 @@ Use one of these values for `appExtVrsId` in step 4 of the original guide.
 
 | appExtVrsId | Version | Status |
 |---|---|---|
-| 858759812 | 10.6.8 | Confirmed |
+| 858759812 | 10.6.8 | Confirmed (installed with Keeper) |
 | 860357778 | 10.6.10 | Confirmed (installed with Keeper or the manual method) |
 | 868934312 | 11.0 | Confirmed |
 | 869630074 | 11.0 | Confirmed |
