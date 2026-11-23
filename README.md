@@ -21,7 +21,7 @@ Use one of these values for `appExtVrsId` in step 4 of the original guide.
 | appExtVrsId | Version | Status |
 |---|---|---|
 | 858759812 | 10.6.8 | Confirmed (installed with Keeper) |
-| 860357778 | 10.6.10 | Confirmed (installed with Keeper or the manual method) |
+| 860357778 | 10.6.10 | Confirmed (installed with Keeper) |
 | 868934312 | 11.0 | Confirmed |
 | 869630074 | 11.0 | Confirmed |
 | 870244110 | 11.0 | Confirmed |
@@ -60,11 +60,11 @@ For most versions, the normal App Store installation works. Follow the original 
 
 The App Store deletes the installer package after the installation. If you want to keep a copy, use Keeper (section 3) during the download.
 
-**Final Cut Pro 10.6.10 is an exception.** The App Store downloaded the package, but macOS refused to install it, with this error:
+**Final Cut Pro 10.6.8 and 10.6.10 are exceptions.** The App Store downloaded the package, but macOS refused to install it, with this error:
 
 > The package FinalCut-Pro-10.6.10.pkg fails to meet Gatekeeper policy.
 
-The package had a valid Apple signature and Gatekeeper accepted it, but the installer service refused it. The system log showed `Denying revoked package`. `sudo installer -pkg` gives the same result. The solution is to save the package before the App Store deletes it, and copy the app into `/Applications` yourself. Keeper does this for you.
+The packages had a valid Apple signature and Gatekeeper accepted them, but the installer service refused them. The system log showed `Denying revoked package`. `sudo installer -pkg` gives the same result. The solution is to save the package before the App Store deletes it, and copy the app into `/Applications` yourself. Keeper does this for you.
 
 ---
 
@@ -239,5 +239,5 @@ If you copied the package to `/tmp`, also remove `/tmp/FinalCut-Pro-10.6.10.pkg`
 - Turn SIP on again after you use the original downgrade guide.
 - Keep the minimum macOS version with each archived package. Keeper writes it in the `.json` file.
 - An older version of Final Cut Pro may not run on a newer version of macOS. A newer version may also require a newer version of macOS.
-- The manual installation was only needed for Final Cut Pro 10.6.10. I have not tested it with every App Store package.
+- The manual installation was only needed for Final Cut Pro 10.6.8 and 10.6.10. I have not tested it with every App Store package.
 - Keep an untouched copy of each archived `.pkg`.
